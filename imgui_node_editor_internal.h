@@ -763,6 +763,7 @@ struct FlowAnimationController final : AnimationController
     virtual ~FlowAnimationController();
 
     void Flow(Link* link, FlowDirection direction = FlowDirection::Forward);
+    void DeleteFlow(Link* link);
 
     virtual void Draw(ImDrawList* drawList) override final;
 
@@ -1441,6 +1442,7 @@ struct EditorContext
     void UnregisterAnimation(Animation* animation);
 
     void Flow(Link* link, FlowDirection direction);
+    void DeleteFlow(Link* link);
 
     void SetUserContext(bool globalSpace = false);
 

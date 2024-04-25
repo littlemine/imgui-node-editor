@@ -2288,6 +2288,11 @@ void ed::EditorContext::Flow(Link* link, FlowDirection direction)
     m_FlowAnimationController.Flow(link, direction);
 }
 
+void ed::EditorContext::DeleteFlow(Link* link)
+{
+    m_FlowAnimationController.DeleteFlow(link);
+}
+
 void ed::EditorContext::SetUserContext(bool globalSpace)
 {
     const auto mousePos = ImGui::GetMousePos();
@@ -3238,6 +3243,19 @@ void ed::FlowAnimationController::Flow(Link* link, FlowDirection direction)
         speedDirection = -1.0f;
 
     animation->Flow(link, editorStyle.FlowMarkerDistance, editorStyle.FlowSpeed * speedDirection, editorStyle.FlowDuration);
+}
+
+void ed::FlowAnimationController::DeleteFlow(Link* link)
+{
+    if (!link)
+        return;
+
+    // Find live animation which match target link and remove if found any
+    {
+        auto animationIt = std::find_if(m_Animations.begin(), m_Animations.end(), [link](FlowAnimation* animation) { return animation->m_Link == link; });
+        if (animationIt != m_Animations.end())
+            m_Animations.erase(animationIt);
+    }
 }
 
 void ed::FlowAnimationController::Draw(ImDrawList* drawList)
