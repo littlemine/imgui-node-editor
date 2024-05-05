@@ -4912,7 +4912,7 @@ ed::CreateItemAction::Result ed::CreateItemAction::AcceptItem()
     {
         Editor->GetItemDeleter().Add(m_DraggedLink);
         m_DraggedLink = nullptr;
-        if (m_OriginalActivePin != m_DraggedPin) {
+        if (m_OriginalActivePin != m_DraggedPin && (m_OriginalActivePin->m_Flags & PinFlags_Removable)) {
             Editor->GetItemDeleter().Add(m_OriginalActivePin);
             m_OriginalActivePin = nullptr;
         }
