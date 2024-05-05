@@ -351,6 +351,7 @@ IMGUI_NODE_EDITOR_API void EndCreate();
 
 IMGUI_NODE_EDITOR_API bool BeginDelete();
 IMGUI_NODE_EDITOR_API bool QueryDeletedLink(LinkId* linkId, PinId* startId = nullptr, PinId* endId = nullptr);
+IMGUI_NODE_EDITOR_API bool QueryDeletedPin(PinId* pinId);
 IMGUI_NODE_EDITOR_API bool QueryDeletedNode(NodeId* nodeId);
 IMGUI_NODE_EDITOR_API bool AcceptDeletedItem(bool deleteDependencies = true);
 IMGUI_NODE_EDITOR_API void RejectDeletedItem();

@@ -1945,6 +1945,21 @@ void ed::EditorContext::FindLinksForNode(NodeId nodeId, vector<Link*>& result, b
     }
 }
 
+void ed::EditorContext::FindLinksForPin(PinId pinId, vector<Link*>& result, bool add)
+{
+    if (!add)
+        result.clear();
+
+    for (auto link : m_Links)
+    {
+        if (!link->m_IsLive)
+            continue;
+
+        if (/* more likely */link->m_EndPin->m_ID == pinId || link->m_StartPin->m_ID == pinId)
+            result.push_back(link);
+    }
+}
+
 bool ed::EditorContext::PinHadAnyLinks(PinId pinId)
 {
     auto pin = FindPin(pinId);
@@ -4897,6 +4912,10 @@ ed::CreateItemAction::Result ed::CreateItemAction::AcceptItem()
     {
         Editor->GetItemDeleter().Add(m_DraggedLink);
         m_DraggedLink = nullptr;
+        if (m_OriginalActivePin != m_DraggedPin) {
+            Editor->GetItemDeleter().Add(m_OriginalActivePin);
+            m_OriginalActivePin = nullptr;
+        }
 
         m_NextStage = Create;
         m_ItemType  = NoItem;
@@ -4999,6 +5018,22 @@ void ed::DeleteItemsAction::DeleteDeadPins(NodeId nodeId)
 
     for (auto pin = node->m_LastPin; pin; pin = pin->m_PreviousPin)
         pin->m_DeleteOnNewFrame = true;
+}
+
+void ed::DeleteItemsAction::DeleteDeadLinks(PinId pinId)
+{
+    vector<ed::Link*> links;
+    Editor->FindLinksForPin(pinId, links, true);
+    for (auto link : links)
+    {
+        link->m_DeleteOnNewFrame = true;
+
+        auto it = std::find(m_CandidateObjects.begin(), m_CandidateObjects.end(), link);
+        if (it != m_CandidateObjects.end())
+            continue;
+
+        m_CandidateObjects.push_back(link);
+    }
 }
 
 ed::EditorAction::AcceptResult ed::DeleteItemsAction::Accept(const Control& control)
@@ -5123,6 +5158,20 @@ bool ed::DeleteItemsAction::QueryLink(LinkId* linkId, PinId* startId, PinId* end
     return true;
 }
 
+bool ed::DeleteItemsAction::QueryPin(PinId* pinId)
+{
+    ObjectId objectId;
+    if (!QueryItem(&objectId, Pin))
+        return false;
+
+    if (auto id = objectId.AsPinId())
+        *pinId = id;
+    else
+        return false;
+
+    return true;
+}
+
 bool ed::DeleteItemsAction::QueryNode(NodeId* nodeId)
 {
     ObjectId objectId;
@@ -5163,6 +5212,14 @@ bool ed::DeleteItemsAction::QueryItem(ObjectId* itemId, IteratorType itemType)
             if (auto node = item->AsNode())
             {
                 *itemId = node->m_ID;
+                return true;
+            }
+        }
+        else if (itemType == Pin)
+        {
+            if (auto pin = item->AsPin())
+            {
+                *itemId = pin->m_ID;
                 return true;
             }
         }
@@ -5221,6 +5278,12 @@ void ed::DeleteItemsAction::RemoveItem(bool deleteDependencies)
         auto node = item->ID().AsNodeId();
         DeleteDeadLinks(node);
         DeleteDeadPins(node);
+    }
+
+    else if (deleteDependencies && m_CurrentItemType == Pin)
+    {
+        auto pin = item->ID().AsPinId();
+        DeleteDeadLinks(pin);
     }
 
     if (m_CurrentItemType == Link)

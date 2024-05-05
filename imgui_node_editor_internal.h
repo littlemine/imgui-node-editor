@@ -1152,17 +1152,19 @@ struct DeleteItemsAction final: EditorAction
     void End();
 
     bool QueryLink(LinkId* linkId, PinId* startId = nullptr, PinId* endId = nullptr);
+    bool QueryPin(PinId* pinId);
     bool QueryNode(NodeId* nodeId);
 
     bool AcceptItem(bool deleteDependencies);
     void RejectItem();
 
 private:
-    enum IteratorType { Unknown, Link, Node };
+    enum IteratorType { Unknown, Link, Pin, Node };
     enum UserAction { Undetermined, Accepted, Rejected };
 
     void DeleteDeadLinks(NodeId nodeId);
     void DeleteDeadPins(NodeId nodeId);
+    void DeleteDeadLinks(PinId pinId);
 
     bool QueryItem(ObjectId* itemId, IteratorType itemType);
     void RemoveItem(bool deleteDependencies);
@@ -1360,6 +1362,7 @@ struct EditorContext
     int BreakLinks(PinId pinId);
 
     void FindLinksForNode(NodeId nodeId, vector<Link*>& result, bool add = false);
+    void FindLinksForPin(PinId pinId, vector<Link*>& result, bool add = false);
 
     bool PinHadAnyLinks(PinId pinId);
 

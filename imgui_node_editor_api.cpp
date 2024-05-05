@@ -365,6 +365,13 @@ bool ax::NodeEditor::QueryDeletedLink(LinkId* linkId, PinId* startId, PinId* end
     return context.QueryLink(linkId, startId, endId);
 }
 
+bool ax::NodeEditor::QueryDeletedPin(PinId* pinId)
+{
+    auto& context = s_Editor->GetItemDeleter();
+
+    return context.QueryPin(pinId);
+}
+
 bool ax::NodeEditor::QueryDeletedNode(NodeId* nodeId)
 {
     auto& context = s_Editor->GetItemDeleter();
