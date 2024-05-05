@@ -2106,6 +2106,21 @@ static inline auto FindItemIn(C& container, Id id)
         return static_cast<decltype(it->m_Object)>(nullptr);
 }
 
+ed::Pin* ed::EditorContext::Relink(Pin* endPin, Link* &pickedLink)
+{
+    for (auto& link : m_Links) {
+        if (!link->m_IsLive)
+            continue;
+        if (link->m_EndPin == endPin) {
+            // GetItemDeleter().Add(link);
+            pickedLink = link;  // only modified upon found
+            return link->m_StartPin;
+        }
+    }
+
+    return nullptr;
+}
+
 ed::Node* ed::EditorContext::FindNode(NodeId id)
 {
     return FindItemInLinear(m_Nodes, id);
@@ -4615,6 +4630,9 @@ ed::CreateItemAction::CreateItemAction(EditorContext* editor):
     m_IsActive(false),
     m_DraggedPin(nullptr),
 
+    m_OriginalActivePin(nullptr),
+    m_DraggedLink(nullptr),
+
     m_IsInGlobalSpace(false)
 {
 }
@@ -4628,9 +4646,13 @@ ed::EditorAction::AcceptResult ed::CreateItemAction::Accept(const Control& contr
 
     if (control.ActivePin && ImGui::IsMouseDragging(Editor->GetConfig().DragButtonIndex, 1))
     {
+        m_OriginalActivePin = control.ActivePin;
         m_DraggedPin = control.ActivePin;
+        if (control.ActivePin->m_Kind == PinKind::Input) {
+            if (auto startPin = Editor->Relink(control.ActivePin, m_DraggedLink))
+                m_DraggedPin = startPin;
+        }
         DragStart(m_DraggedPin);
-
         Editor->ClearSelection();
     }
     else if (control.HotPin)
@@ -4652,7 +4674,7 @@ bool ed::CreateItemAction::Process(const Control& control)
     if (!m_IsActive)
         return false;
 
-    if (m_DraggedPin && control.ActivePin == m_DraggedPin && (m_CurrentStage == Possible))
+    if (m_DraggedPin && control.ActivePin == m_OriginalActivePin && (m_CurrentStage == Possible))
     {
         const auto draggingFromSource = (m_DraggedPin->m_Kind == PinKind::Output);
 
@@ -4691,6 +4713,8 @@ bool ed::CreateItemAction::Process(const Control& control)
         if (!Editor->CanAcceptUserInput())
         {
             m_DraggedPin = nullptr;
+            m_OriginalActivePin = nullptr;
+            m_DraggedLink = nullptr;
             DropNothing();
         }
 
@@ -4802,7 +4826,10 @@ void ed::CreateItemAction::DragEnd()
 
     if (m_CurrentStage == Possible && m_UserAction == UserAccept)
     {
-        m_NextStage = Create;
+        if (m_DraggedLink)
+            m_NextStage = DeleteThenCreate;
+        else
+            m_NextStage = Create;
     }
     else
     {
@@ -4861,6 +4888,17 @@ ed::CreateItemAction::Result ed::CreateItemAction::AcceptItem()
     if (m_CurrentStage == Create)
     {
         m_NextStage = None;
+        m_ItemType  = NoItem;
+        m_LinkStart = nullptr;
+        m_LinkEnd   = nullptr;
+        return True;
+    }
+    else if (m_CurrentStage == DeleteThenCreate)
+    {
+        Editor->GetItemDeleter().Add(m_DraggedLink);
+        m_DraggedLink = nullptr;
+
+        m_NextStage = Create;
         m_ItemType  = NoItem;
         m_LinkStart = nullptr;
         m_LinkEnd   = nullptr;

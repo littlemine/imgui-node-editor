@@ -1048,7 +1048,8 @@ struct CreateItemAction final : EditorAction
     {
         None,
         Possible,
-        Create
+        Create,
+        DeleteThenCreate
     };
 
     enum Action
@@ -1085,6 +1086,8 @@ struct CreateItemAction final : EditorAction
 
     bool      m_IsActive;
     Pin*      m_DraggedPin;
+    Pin*      m_OriginalActivePin;
+    Detail::Link*   m_DraggedLink;
 
     int       m_LastChannel = -1;
 
@@ -1383,6 +1386,7 @@ struct EditorContext
     Node*   CreateNode(NodeId id);
     Link*   CreateLink(LinkId id);
 
+    Pin*    Relink(Pin* endPin, Link* &pickedLink);    // return the start pin (iff one link ends with 'endId')
     Node*   FindNode(NodeId id);
     Pin*    FindPin(PinId id);
     Link*   FindLink(LinkId id);
