@@ -49,6 +49,12 @@ enum class PinKind
     Output
 };
 
+enum PinFlags_
+{
+    PinFlags_None       = 0,
+    PinFlags_Removable  = 1 << 0
+};
+
 enum class FlowDirection
 {
     Forward,
@@ -307,7 +313,7 @@ IMGUI_NODE_EDITOR_API void Begin(const char* id, const ImVec2& size = ImVec2(0, 
 IMGUI_NODE_EDITOR_API void End();
 
 IMGUI_NODE_EDITOR_API void BeginNode(NodeId id);
-IMGUI_NODE_EDITOR_API void BeginPin(PinId id, PinKind kind);
+IMGUI_NODE_EDITOR_API void BeginPin(PinId id, PinKind kind, PinFlags_ flags = PinFlags_None);
 IMGUI_NODE_EDITOR_API void PinRect(const ImVec2& a, const ImVec2& b);
 IMGUI_NODE_EDITOR_API void PinPivotRect(const ImVec2& a, const ImVec2& b);
 IMGUI_NODE_EDITOR_API void PinPivotSize(const ImVec2& size);

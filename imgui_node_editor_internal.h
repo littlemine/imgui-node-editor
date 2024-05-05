@@ -291,6 +291,7 @@ struct Pin final: Object
 
     PinId   m_ID;
     PinKind m_Kind;
+    PinFlags_ m_Flags;
     Node*   m_Node;
     ImRect  m_Bounds;
     ImRect  m_Pivot;
@@ -309,10 +310,11 @@ struct Pin final: Object
     bool    m_HasConnection;
     bool    m_HadConnection;
 
-    Pin(EditorContext* editor, PinId id, PinKind kind)
+    Pin(EditorContext* editor, PinId id, PinKind kind, PinFlags_ flags = PinFlags_None)
         : Object(editor)
         , m_ID(id)
         , m_Kind(kind)
+        , m_Flags(flags)
         , m_Node(nullptr)
         , m_Bounds()
         , m_PreviousPin(nullptr)
@@ -1202,7 +1204,7 @@ struct NodeBuilder
     void Begin(NodeId nodeId);
     void End();
 
-    void BeginPin(PinId pinId, PinKind kind);
+    void BeginPin(PinId pinId, PinKind kind, PinFlags_ flags);
     void EndPin();
 
     void PinRect(const ImVec2& a, const ImVec2& b);
@@ -1382,7 +1384,7 @@ struct EditorContext
     int CountLivePins() const;
     int CountLiveLinks() const;
 
-    Pin*    CreatePin(PinId id, PinKind kind);
+    Pin*    CreatePin(PinId id, PinKind kind, PinFlags_ flags);
     Node*   CreateNode(NodeId id);
     Link*   CreateLink(LinkId id);
 
@@ -1393,7 +1395,7 @@ struct EditorContext
     Object* FindObject(ObjectId id);
 
     Node*  GetNode(NodeId id);
-    Pin*   GetPin(PinId id, PinKind kind);
+    Pin*   GetPin(PinId id, PinKind kind, PinFlags_ flags);
     Link*  GetLink(LinkId id);
 
     Link* FindLinkAt(const ImVec2& p);

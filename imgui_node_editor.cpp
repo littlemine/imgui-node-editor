@@ -2024,10 +2024,10 @@ int ed::EditorContext::CountLiveLinks() const
     return (int)std::count_if(m_Links.begin(),  m_Links.end(),  [](const Link* link)  { return link->m_IsLive; });
 }
 
-ed::Pin* ed::EditorContext::CreatePin(PinId id, PinKind kind)
+ed::Pin* ed::EditorContext::CreatePin(PinId id, PinKind kind, PinFlags_ flags)
 {
     IM_ASSERT(nullptr == FindObject(id));
-    auto pin = new Pin(this, id, kind);
+    auto pin = new Pin(this, id, kind, flags);
     m_Pins.push_back({id, pin});
     std::sort(m_Pins.begin(), m_Pins.end());
     return pin;
@@ -2156,7 +2156,7 @@ ed::Node* ed::EditorContext::GetNode(NodeId id)
     return node;
 }
 
-ed::Pin* ed::EditorContext::GetPin(PinId id, PinKind kind)
+ed::Pin* ed::EditorContext::GetPin(PinId id, PinKind kind, PinFlags_ flags)
 {
     if (auto pin = FindPin(id))
     {
@@ -2164,7 +2164,7 @@ ed::Pin* ed::EditorContext::GetPin(PinId id, PinKind kind)
         return pin;
     }
     else
-        return CreatePin(id, kind);
+        return CreatePin(id, kind, flags);
 }
 
 ed::Link* ed::EditorContext::GetLink(LinkId id)
@@ -5389,7 +5389,7 @@ void ed::NodeBuilder::End()
     m_CurrentNode = nullptr;
 }
 
-void ed::NodeBuilder::BeginPin(PinId pinId, PinKind kind)
+void ed::NodeBuilder::BeginPin(PinId pinId, PinKind kind, PinFlags_ flags)
 {
     IM_ASSERT(nullptr != m_CurrentNode);
     IM_ASSERT(nullptr == m_CurrentPin);
@@ -5397,7 +5397,7 @@ void ed::NodeBuilder::BeginPin(PinId pinId, PinKind kind)
 
     auto& editorStyle = Editor->GetStyle();
 
-    m_CurrentPin = Editor->GetPin(pinId, kind);
+    m_CurrentPin = Editor->GetPin(pinId, kind, flags);
     m_CurrentPin->m_Node = m_CurrentNode;
 
     m_CurrentPin->m_IsLive      = true;
