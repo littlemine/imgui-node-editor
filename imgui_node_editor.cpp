@@ -4804,6 +4804,20 @@ bool ed::CreateItemAction::Begin()
 
     m_LastChannel = Editor->GetDrawList()->_Splitter._Current;
 
+    /// 
+    if (m_CurrentStage == DeleteThenCreate)
+    {
+        Editor->GetItemDeleter().Add(m_DraggedLink);
+        m_DraggedLink = nullptr;
+        if (m_OriginalActivePin != m_DraggedPin && (m_OriginalActivePin->m_Flags & PinFlags_Removable)) {
+            Editor->GetItemDeleter().Add(m_OriginalActivePin);
+            m_OriginalActivePin = nullptr;
+        }
+
+        m_CurrentStage = Create;
+        return true;
+    }
+
     return true;
 }
 
@@ -4903,21 +4917,6 @@ ed::CreateItemAction::Result ed::CreateItemAction::AcceptItem()
     if (m_CurrentStage == Create)
     {
         m_NextStage = None;
-        m_ItemType  = NoItem;
-        m_LinkStart = nullptr;
-        m_LinkEnd   = nullptr;
-        return True;
-    }
-    else if (m_CurrentStage == DeleteThenCreate)
-    {
-        Editor->GetItemDeleter().Add(m_DraggedLink);
-        m_DraggedLink = nullptr;
-        if (m_OriginalActivePin != m_DraggedPin && (m_OriginalActivePin->m_Flags & PinFlags_Removable)) {
-            Editor->GetItemDeleter().Add(m_OriginalActivePin);
-            m_OriginalActivePin = nullptr;
-        }
-
-        m_NextStage = Create;
         m_ItemType  = NoItem;
         m_LinkStart = nullptr;
         m_LinkEnd   = nullptr;
