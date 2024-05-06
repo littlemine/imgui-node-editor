@@ -4733,6 +4733,7 @@ bool ed::CreateItemAction::Process(const Control& control)
             DropNothing();
         }
 
+        m_DragEndPin = control.HotPin;
         DragEnd();
         m_IsActive = false;
     }
@@ -4807,6 +4808,7 @@ bool ed::CreateItemAction::Begin()
     /// 
     if (m_CurrentStage == DeleteThenCreate)
     {
+        // embedded in the 'Create' stage
         Editor->GetItemDeleter().Add(m_DraggedLink);
         m_DraggedLink = nullptr;
         if (m_OriginalActivePin != m_DraggedPin && (m_OriginalActivePin->m_Flags & PinFlags_Removable)) {
@@ -4816,6 +4818,22 @@ bool ed::CreateItemAction::Begin()
 
         m_CurrentStage = Create;
         return true;
+    }
+    else if (m_CurrentStage == DeletePinLink) 
+    {
+       // transit to the 'None' stage
+        Editor->GetItemDeleter().Add(m_DraggedLink);
+        m_DraggedLink = nullptr;
+        if (m_OriginalActivePin != m_DraggedPin && (m_OriginalActivePin->m_Flags & PinFlags_Removable)) {
+            Editor->GetItemDeleter().Add(m_OriginalActivePin);
+            m_OriginalActivePin = nullptr;
+        }
+
+        m_NextStage = None;
+        m_ItemType = NoItem;
+        m_LinkStart = nullptr;
+        m_LinkEnd = nullptr;
+        return false;
     }
 
     return true;
@@ -4862,10 +4880,15 @@ void ed::CreateItemAction::DragEnd()
     }
     else
     {
-        m_NextStage = None;
-        m_ItemType  = NoItem;
-        m_LinkStart = nullptr;
-        m_LinkEnd   = nullptr;
+        if (m_DraggedLink && (!m_DragEndPin || (m_DragEndPin && m_DraggedLink->m_EndPin->m_ID != m_DragEndPin->m_ID))) {
+            m_NextStage = DeletePinLink;
+        }
+        else {
+            m_NextStage = None;
+            m_ItemType = NoItem;
+            m_LinkStart = nullptr;
+            m_LinkEnd = nullptr;
+        }
     }
 }
 

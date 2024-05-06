@@ -1051,6 +1051,7 @@ struct CreateItemAction final : EditorAction
         None,
         Possible,
         Create,
+        DeletePinLink,
         DeleteThenCreate
     };
 
@@ -1090,6 +1091,7 @@ struct CreateItemAction final : EditorAction
     Pin*      m_DraggedPin;
     Pin*      m_OriginalActivePin;
     Detail::Link*   m_DraggedLink;
+    Pin*      m_DragEndPin;
 
     int       m_LastChannel = -1;
 
