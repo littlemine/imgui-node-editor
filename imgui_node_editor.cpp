@@ -5320,6 +5320,30 @@ ed::Object* ed::DeleteItemsAction::DropCurrentItem()
     return item;
 }
 
+void ed::DeleteItemsAction::RemoveItem(Object* item)
+{
+    Editor->DeselectObject(item);
+
+    Editor->RemoveSettings(item);
+
+    item->m_DeleteOnNewFrame = true;
+
+    if (item->AsNode())
+    {
+        auto node = item->ID().AsNodeId();
+        DeleteDeadLinks(node);
+        DeleteDeadPins(node);
+    }
+
+    else if (item->AsPin())
+    {
+        auto pin = item->ID().AsPinId();
+        DeleteDeadLinks(pin);
+    }
+
+    if (auto link = item->AsLink())
+        Editor->NotifyLinkDeleted(link);
+}
 
 
 

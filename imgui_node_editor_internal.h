@@ -1160,6 +1160,8 @@ struct DeleteItemsAction final: EditorAction
     bool AcceptItem(bool deleteDependencies);
     void RejectItem();
 
+    void RemoveItem(Object* item);
+
 private:
     enum IteratorType { Unknown, Link, Pin, Node };
     enum UserAction { Undetermined, Accepted, Rejected };
